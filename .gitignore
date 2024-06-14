@@ -38,4 +38,7 @@ yarn-error.log*
 *.pem
 
 
+.gnc
+
+
 
