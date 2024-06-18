@@ -39,4 +39,4 @@ jobs:
             sudo docker pull faizanx168/gopay:latest
             sudo docker stop gopay || true 
             sudo docker rm gopay || true
-            sudo docker run -d -e DATABASE_URL = ${{secrets.DATABASE_URL}} --name gopay -p 3005:3000 faizanx168/gopay:latest
+            sudo docker run -d -e DATABASE_URL=${{secrets.DATABASE_URL}} --name gopay -p 3005:3000 faizanx168/gopay:latest
