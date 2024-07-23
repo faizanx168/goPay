@@ -77,8 +77,8 @@ jobs:
             sudo docker pull faizanx168/gopay-bank-webhook:latest
             sudo docker pull faizanx168/gopay-q-worker:latest
             # Stop and remove existing containers
-            sudo docker stop gopay-user-app gopay-bank-webhook gopay-q-worker || true
-            sudo docker rm gopay-user-app gopay-bank-webhook gopay-q-worker || true
+            sudo docker stop gopay gopay-user-app gopay-bank-webhook gopay-q-worker || true
+            sudo docker rm gopay gopay-user-app gopay-bank-webhook gopay-q-worker || true
             # Run Redis container
             sudo docker run -d --name redis -p 6379:6379 redis
             # Run new containers
