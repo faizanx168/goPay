@@ -10,14 +10,23 @@ export const authOptions = {
         phone: {
           label: "Phone number",
           type: "text",
-          placeholder: "1231231231",
+          placeholder: "9294559680",
           required: true,
         },
         password: { label: "Password", type: "password", required: true },
       },
+
       // TODO: User credentials type from next-aut
       async authorize(credentials: any) {
         // Do zod validation, OTP validation here
+        const phoneNumberPattern = /^\d{10}$/;
+
+        // Validate phone number format
+        if (!phoneNumberPattern.test(credentials.phone)) {
+          throw new Error(
+            "Invalid phone number format. Please enter a 10-digit phone number."
+          );
+        }
         const hashedPassword = await bcrypt.hash(credentials.password, 10);
         const existingUser = await db.user.findFirst({
           where: {
@@ -47,7 +56,13 @@ export const authOptions = {
               password: hashedPassword,
             },
           });
-
+          await db.balance.create({
+            data: {
+              userId: user.id,
+              amount: 0,
+              locked: 0,
+            },
+          });
           return {
             id: user.id.toString(),
             name: user.name,
@@ -63,7 +78,6 @@ export const authOptions = {
   ],
   secret: process.env.JWT_SECRET || "secret",
   callbacks: {
-    // TODO: can u fix the type here? Using any is bad
     async session({ token, session }: any) {
       session.user.id = token.sub;
 

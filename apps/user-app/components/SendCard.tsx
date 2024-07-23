@@ -1,16 +1,31 @@
 "use client";
-import { Button } from "@repo/ui/button";
+import { Button } from "./Button";
 import { Card } from "@repo/ui/card";
-import { Center } from "@repo/ui/center";
-import { Select } from "@repo/ui/select";
-import { use, useState } from "react";
+import { useState } from "react";
 import { TextInput } from "@repo/ui/textinput";
-import { CreateOnRampTransaction } from "../app/lib/actions/createOnRamptnx";
 import { P2PTransfer } from "../app/lib/actions/P2PTransfer";
 
 export const SendCard = () => {
   const [amount, setAmount] = useState(0);
   const [number, setNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
+  const handleSendMoney = async () => {
+    if (amount <= 0) {
+      setFeedback("Please enter a valid amount");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { message } = await P2PTransfer(number, amount * 100);
+      setFeedback(message);
+    } catch (error) {
+      setFeedback("failed!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <Card title="Send Money">
       <div className="w-full">
@@ -29,14 +44,11 @@ export const SendCard = () => {
           }}
         />
         <div className="flex justify-center pt-4">
-          <Button
-            onClick={async () => {
-              await P2PTransfer(number, amount);
-            }}
-          >
-            Send Money
+          <Button onClick={handleSendMoney} disabled={isLoading}>
+            {isLoading ? "Processing..." : "Send Money"}
           </Button>
         </div>
+        {feedback && <div className="text-center pt-4">{feedback}</div>}
       </div>
     </Card>
   );

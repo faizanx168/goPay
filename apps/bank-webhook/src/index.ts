@@ -1,27 +1,18 @@
 import express from "express";
 import db from "@repo/db/client";
+
 const app = express();
 
 app.use(express.json());
 
-app.post("/hdfcWebhook", async (req, res) => {
-  //TODO: Add zod validation here?
-  //TODO:  bank should ideally send us a secret so we know this is sent by them
-  const paymentInformation: {
-    token: string;
-    userId: string;
-    amount: string;
-  } = {
-    token: req.body.token,
-    userId: req.body.user_identifier,
-    amount: req.body.amount,
-  };
-
+app.post("/bank-hook", async (req, res) => {
+  const paymentInformation = req.body;
+  console.log(paymentInformation);
   try {
     await db.$transaction([
       db.balance.updateMany({
         where: {
-          userId: Number(paymentInformation.userId),
+          userId: Number(paymentInformation.user_identifier),
         },
         data: {
           amount: {
@@ -44,10 +35,12 @@ app.post("/hdfcWebhook", async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    res.status(411).json({
+    res.status(500).json({
       message: "Error while processing webhook",
     });
   }
 });
 
-app.listen(3003);
+app.listen(3003, () => {
+  console.log("Bank webhook handler listening on port 3003");
+});

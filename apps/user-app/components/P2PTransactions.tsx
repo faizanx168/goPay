@@ -21,13 +21,13 @@ export const P2PTransactions = ({
         {transactions.map((t) => (
           <div className="flex justify-between">
             <div>
-              <div className="text-sm">Received INR</div>
+              <div className="text-sm">Sent USD</div>
               <div className="text-slate-600 text-xs">
                 {t.time.toDateString()}
               </div>
             </div>
             <div className="flex flex-col justify-center">
-              + Rs {Number(t.amount) / 100}
+              - ${Number(t.amount) / 100}
             </div>
           </div>
         ))}

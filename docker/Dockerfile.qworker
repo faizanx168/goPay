@@ -1,0 +1,28 @@
+# docker/Dockerfile.qworker
+FROM node:20.12.0-alpine3.19
+
+WORKDIR /usr/src/app
+
+# Copy root config files
+COPY package.json package-lock.json turbo.json tsconfig.json ./
+
+# Copy the q-worker app
+COPY apps/q-worker/package.json apps/q-worker/tsconfig.json ./apps/q-worker/
+
+# Copy common packages
+COPY packages ./packages
+
+# Copy the source code for q-worker
+COPY apps/q-worker/src ./apps/q-worker/src
+
+# Install dependencies
+RUN npm install
+
+# Generate Prisma client if needed
+RUN cd packages/db && npx prisma generate && cd ../..
+
+# Build the application
+RUN npm run build --workspace=apps/q-worker
+
+# Set the command to start the q-worker app
+CMD [ "npm", "run", "start-q-worker" ]

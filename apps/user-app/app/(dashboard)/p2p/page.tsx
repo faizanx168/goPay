@@ -24,6 +24,8 @@ async function getP2PTransactions() {
     where: {
       fromUserId: Number(session?.user?.id),
     },
+    take: 5,
+    orderBy: { timestamp: "desc" },
   });
   return txns.map((t) => ({
     time: t.timestamp,
@@ -38,7 +40,7 @@ export default async function () {
   return (
     <div className="w-screen">
       <div className="text-4xl text-[#6a51a6] pt-8 mb-8 font-bold">
-        Transfer
+        P2P Transfer
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 p-4">
         <div>
