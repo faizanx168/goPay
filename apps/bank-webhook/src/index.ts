@@ -41,6 +41,6 @@ app.post("/bank-hook", async (req, res) => {
   }
 });
 
-app.listen(3003, () => {
+app.listen(3001, () => {
   console.log("Bank webhook handler listening on port 3003");
 });
