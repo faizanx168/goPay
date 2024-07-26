@@ -1,21 +1,15 @@
 import { createClient } from "redis";
 import axios from "axios";
 
-// Update Redis client configuration
 const redisClient = createClient({
-  url: "redis://redis:6379", // Use the container name and port
+  url: "redis://redis:6379",
 });
-
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
 
 (async () => {
-  try {
-    if (!redisClient.isOpen) {
-      await redisClient.connect();
-      console.log("Worker connected to Redis");
-    }
-  } catch (error) {
-    console.error("Error connecting to Redis:", error);
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+    console.log("Worker connected to Redis");
   }
 })();
 

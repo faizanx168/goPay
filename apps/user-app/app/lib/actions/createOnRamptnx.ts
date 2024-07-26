@@ -1,3 +1,4 @@
+"use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import prisma from "@repo/db/client";
@@ -10,13 +11,9 @@ const redisClient = createClient({
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
 
 (async () => {
-  try {
-    if (!redisClient.isOpen) {
-      await redisClient.connect();
-      console.log("Connected to Redis");
-    }
-  } catch (error) {
-    console.error("Error connecting to Redis:", error);
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+    console.log("Connected to Redis");
   }
 })();
 
@@ -25,16 +22,12 @@ export async function CreateOnRampTransaction(
   provider: string
 ) {
   const token = uuidv4();
-  let userId;
-  try {
-    const session = await getServerSession(authOptions);
-    userId = session?.user?.id;
-    if (!userId) {
-      return { message: "User not logged in!" };
-    }
-  } catch (error) {
-    console.error("Error retrieving session:", error);
-    return { message: "Failed to retrieve user session." };
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) {
+    return {
+      message: "User not logged in!",
+    };
   }
 
   try {
@@ -59,13 +52,19 @@ export async function CreateOnRampTransaction(
           token: transaction.token,
         })
       );
-      return { message: "On ramp transaction created" };
+      return {
+        message: "On ramp transaction created",
+      };
     } catch (error) {
       console.error("Redis error:", error);
-      return { message: "Failed to queue transaction." };
+      return {
+        message: "Failed to queue transaction.",
+      };
     }
   } catch (error) {
     console.error("Prisma error:", error);
-    return { message: "Failed to create transaction." };
+    return {
+      message: "Failed to create transaction.",
+    };
   }
 }

@@ -7,40 +7,32 @@ export async function P2PTransfer(to: string, amount: number) {
   console.log("P2PTransfer called with:", { to, amount });
   const session = await getServerSession(authOptions);
   const from = session?.user?.id;
-
   if (!from) {
     console.error("User not logged in");
     return {
       message: "Error while sending!",
     };
   }
-
   const toUser = await prisma.user.findFirst({
     where: {
       number: to,
     },
   });
-
   if (!toUser) {
     console.error("User not found for number:", to);
     return {
       message: "User not Found!",
     };
   }
-
   try {
     await prisma.$transaction(async (tx) => {
-      // Retrieve and lock the balance in a single query
+      await tx.$queryRaw`SELECT * FROM "Balance" where "userId" = ${Number(from)} FOR UPDATE`;
       const fromBalance = await tx.balance.findUnique({
         where: { userId: Number(from) },
-        select: { amount: true }, // Select only the necessary field
       });
-
       if (!fromBalance || fromBalance.amount < amount) {
         throw new Error("Insufficient funds");
       }
-
-      // Update balances
       await tx.balance.update({
         where: { userId: Number(from) },
         data: {
@@ -49,7 +41,6 @@ export async function P2PTransfer(to: string, amount: number) {
           },
         },
       });
-
       await tx.balance.update({
         where: { userId: Number(toUser.id) },
         data: {
@@ -58,8 +49,6 @@ export async function P2PTransfer(to: string, amount: number) {
           },
         },
       });
-
-      // Log the transaction
       await tx.p2pTransfer.create({
         data: {
           fromUserId: Number(from),
@@ -69,7 +58,6 @@ export async function P2PTransfer(to: string, amount: number) {
         },
       });
     });
-
     console.log("Funds transferred successfully");
     return {
       message: "Funds transferred successfully",
