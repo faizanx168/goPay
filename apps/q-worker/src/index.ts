@@ -23,9 +23,9 @@ async function processQueue() {
         );
         console.log("transaction", transaction);
         try {
-          await new Promise((resolve) => setTimeout(resolve, 4000));
+          await new Promise((resolve) => setTimeout(resolve, 400));
           const result = await axios.post(
-            `http://ec2-3-12-102-229.us-east-2.compute.amazonaws.com/webhook/bank-hook`,
+            `http://ec2-3-12-102-229.us-east-2.compute.amazonaws.com/bank-hook`,
             {
               token,
               user_identifier: userId,
