@@ -1,17 +1,22 @@
-"use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import prisma from "@repo/db/client";
 import { createClient } from "redis";
 import { v4 as uuidv4 } from "uuid";
 
-const redisClient = createClient();
+const redisClient = createClient({
+  url: "redis://redis:6379",
+});
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
 
 (async () => {
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-    console.log("Connected to Redis");
+  try {
+    if (!redisClient.isOpen) {
+      await redisClient.connect();
+      console.log("Connected to Redis");
+    }
+  } catch (error) {
+    console.error("Error connecting to Redis:", error);
   }
 })();
 
@@ -20,12 +25,16 @@ export async function CreateOnRampTransaction(
   provider: string
 ) {
   const token = uuidv4();
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) {
-    return {
-      message: "User not logged in!",
-    };
+  let userId;
+  try {
+    const session = await getServerSession(authOptions);
+    userId = session?.user?.id;
+    if (!userId) {
+      return { message: "User not logged in!" };
+    }
+  } catch (error) {
+    console.error("Error retrieving session:", error);
+    return { message: "Failed to retrieve user session." };
   }
 
   try {
@@ -50,19 +59,13 @@ export async function CreateOnRampTransaction(
           token: transaction.token,
         })
       );
-      return {
-        message: "On ramp transaction created",
-      };
+      return { message: "On ramp transaction created" };
     } catch (error) {
       console.error("Redis error:", error);
-      return {
-        message: "Failed to queue transaction.",
-      };
+      return { message: "Failed to queue transaction." };
     }
   } catch (error) {
     console.error("Prisma error:", error);
-    return {
-      message: "Failed to create transaction.",
-    };
+    return { message: "Failed to create transaction." };
   }
 }

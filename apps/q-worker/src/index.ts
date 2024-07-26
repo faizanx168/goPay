@@ -1,13 +1,21 @@
 import { createClient } from "redis";
 import axios from "axios";
 
-const redisClient = createClient();
+// Update Redis client configuration
+const redisClient = createClient({
+  url: "redis://redis:6379", // Use the container name and port
+});
+
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
 
 (async () => {
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-    console.log("Worker connected to Redis");
+  try {
+    if (!redisClient.isOpen) {
+      await redisClient.connect();
+      console.log("Worker connected to Redis");
+    }
+  } catch (error) {
+    console.error("Error connecting to Redis:", error);
   }
 })();
 
@@ -22,11 +30,14 @@ async function processQueue() {
         console.log("transaction", transaction);
         try {
           await new Promise((resolve) => setTimeout(resolve, 4000));
-          const result = await axios.post(`http://localhost:3003/bank-hook`, {
-            token,
-            user_identifier: userId,
-            amount,
-          });
+          const result = await axios.post(
+            `http://ec2-3-12-102-229.us-east-2.compute.amazonaws.com/webhook/bank-hook`,
+            {
+              token,
+              user_identifier: userId,
+              amount,
+            }
+          );
 
           if (result.data.message === "Captured") {
             console.log(`Processed transaction ${transactionId}`);
