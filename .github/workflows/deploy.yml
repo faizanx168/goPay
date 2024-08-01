@@ -76,23 +76,30 @@ jobs:
             sudo docker pull faizanx168/gopay-user-app:latest
             sudo docker pull faizanx168/gopay-bank-webhook:latest
             sudo docker pull faizanx168/gopay-q-worker:latest
+
             # Stop and remove existing containers
-            sudo docker stop gopay gopay-user-app gopay-bank-webhook gopay-q-worker || true
-            sudo docker rm gopay gopay-user-app gopay-bank-webhook gopay-q-worker || true
+            sudo docker stop gopay-user-app gopay-bank-webhook gopay-q-worker || true
+            sudo docker rm gopay-user-app gopay-bank-webhook gopay-q-worker || true
+
             # Run Redis container
             sudo docker run -d --name redis -p 6379:6379 redis
-            # Run new containers
+
+            # Run new containers with environment variables
             sudo docker run -d \
               -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               -e NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }} \
               --name gopay-user-app \
               -p 3000:3000 \
               faizanx168/gopay-user-app:latest
+              
             sudo docker run -d \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               --name gopay-bank-webhook \
               -p 3001:3001 \
               faizanx168/gopay-bank-webhook:latest
+              
             sudo docker run -d \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               -e REDIS_URL=redis://redis:6379 \
               --name gopay-q-worker \
               -p 3002:3002 \
